@@ -1,0 +1,20 @@
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
+
+# Dependencies
+node_modules/
+
+# Build output
+frontend/.next/
+frontend/out/
+dist/
+build/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
