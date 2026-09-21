@@ -1,5 +1,14 @@
 const db = require('../config/database');
 const { AppError } = require('../utils/AppError');
+const { createNotification } = require('./notification.controller');
+
+/** Get all active super_admin and hr_admin IDs (to notify them). */
+async function getHrAdminIds() {
+  const r = await db.query(
+    `SELECT id FROM admins WHERE role IN ('super_admin', 'hr_admin') AND is_active = TRUE`
+  );
+  return r.rows.map(row => row.id);
+}
 
 /* ─── POST /api/leave/apply ─────────────────────────────── */
 const applyLeave = async (req, res, next) => {
@@ -40,6 +49,29 @@ const applyLeave = async (req, res, next) => {
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
       [employee_id, leave_type, from_date, to_date, days, reason]
     );
+
+    // Notify super_admin / hr_admin so the request shows up in their notification bell
+    try {
+      const adminIds = await getHrAdminIds();
+      if (adminIds.length) {
+        const empName = await db.query(
+          'SELECT full_name FROM employees WHERE employee_id = $1',
+          [employee_id]
+        );
+        const fmt = d => new Date(d).toISOString().split('T')[0];
+        await createNotification({
+          adminId:     adminIds,
+          type:        'leave_request',
+          title:       'New Leave Request',
+          message:     `${empName.rows[0]?.full_name || employee_id} requested ${days} day(s) of ${leave_type} leave (${fmt(from_date)} → ${fmt(to_date)}).`,
+          relatedType: 'leave',
+          relatedId:   result.rows[0].id,
+        });
+      }
+    } catch (notifErr) {
+      // Never fail the leave application because of a notification problem
+      console.error('leave notification error:', notifErr.message);
+    }
 
     return res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) { next(err); }
@@ -114,6 +146,24 @@ const reviewLeave = async (req, res, next) => {
           [req_row.employee_id, req_row.from_date, req_row.to_date]
         );
       }
+    }
+
+    // Notify the employee of the decision
+    try {
+      await db.query(
+        `INSERT INTO employee_notifications (employee_id, type, title, message)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          existing.rows[0].employee_id,
+          action === 'approve' ? 'leave_approved' : 'leave_rejected',
+          action === 'approve' ? 'Leave Approved' : 'Leave Rejected',
+          action === 'approve'
+            ? `Your ${existing.rows[0].leave_type} leave (${existing.rows[0].from_date.toISOString().split('T')[0]} → ${existing.rows[0].to_date.toISOString().split('T')[0]}) has been approved.${comment ? ` Note: ${comment}` : ''}`
+            : `Your ${existing.rows[0].leave_type} leave request was rejected.${comment ? ` Reason: ${comment}` : ''}`,
+        ]
+      );
+    } catch (notifErr) {
+      console.error('leave decision notification error:', notifErr.message);
     }
 
     return res.json({ success: true, data: updated.rows[0] });

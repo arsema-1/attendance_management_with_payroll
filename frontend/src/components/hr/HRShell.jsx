@@ -23,6 +23,7 @@ const NOTIF_ICONS = {
   payroll_approval: FileText,
   payroll_approved: CheckCircle,
   payroll_rejected: AlertCircle,
+  leave_request:    Clock,
 };
 
 export default function HRShell({ children }) {
@@ -239,11 +240,13 @@ export default function HRShell({ children }) {
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                               notif.type === 'payroll_approved' ? 'bg-green-100' :
                               notif.type === 'payroll_rejected' ? 'bg-red-100' :
+                              notif.type === 'leave_request'    ? 'bg-cyan-100' :
                               'bg-amber-100'
                             }`}>
                               <Icon className={`w-4 h-4 ${
                                 notif.type === 'payroll_approved' ? 'text-green-600' :
                                 notif.type === 'payroll_rejected' ? 'text-red-600' :
+                                notif.type === 'leave_request'    ? 'text-cyan-600' :
                                 'text-amber-600'
                               }`} />
                             </div>
