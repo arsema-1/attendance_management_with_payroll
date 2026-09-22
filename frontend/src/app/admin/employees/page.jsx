@@ -299,9 +299,7 @@ export default function EmployeePage() {
                             <Ban className="w-3.5 h-3.5" /> Deactivate
                           </button>
                         </div>
-                      ) : (
-                        <span className="text-xs text-gray-400 italic">View only — contact HR to make changes</span>
-                      )}
+                      ) : null}
                     </td>
                   </tr>
                 ))
