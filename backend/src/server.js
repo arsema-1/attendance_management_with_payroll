@@ -4,7 +4,8 @@ const db = require("./config/database");
 const seedAdmin = require("./utils/seedAdmin");
 const repairLegacySeedData = require("./utils/repairLegacySeedData");
 
-const PORT = 5000;  // Fixed port — do not change without updating frontend .env.local and CORS_ORIGIN
+// Use the port provided by the hosting platform (Render/Railway/Heroku inject PORT); fall back to 5000 for local dev
+const PORT = process.env.PORT || 5000;
 
 async function start() {
   try {

@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "node clean-dev.js",
-    "prod": "node -e \"require('fs').existsSync('.next')&&require('fs').rmSync('.next',{recursive:true,force:true})\" && next build && next start -p 3500",
+    "prod": "npm run build && npm run start",
     "build": "next build",
-    "start": "next start -p 3500",
+    "start": "next start -p ${PORT:-3500}",
     "lint": "next lint"
   },
   "dependencies": {

@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "build": "echo 'No build step required for backend' && exit 0",
     "dev": "nodemon src/server.js",
     "migrate": "node src/utils/migrate.js",
     "seed": "node src/utils/seed.js",
@@ -39,6 +40,6 @@
     "supertest": "^7.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
