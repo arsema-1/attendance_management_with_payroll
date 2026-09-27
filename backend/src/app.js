@@ -26,9 +26,28 @@ app.use(helmet({
 // ─── CORS ────────────────────────────────────────────────────
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3500,http://localhost:3000,http://localhost:3001').split(',').map((origin) => origin.trim()).filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const hostname = new URL(origin).hostname;
+    return (
+      /^localhost$/.test(hostname) ||
+      /^127\.0\.0\.1$/.test(hostname) ||
+      hostname.endsWith('.vercel.app') ||
+      hostname.endsWith('.netlify.app') ||
+      hostname.endsWith('.onrender.com') ||
+      hostname.endsWith('.render.com')
+    );
+  } catch {
+    return false;
+  }
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
